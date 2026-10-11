@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EMFieldVisualizer/EMFieldVisualizer.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EMFieldVisualizer.Tests/EMFieldVisualizer.Tests.csproj" />
+  </Folder>
+</Solution>

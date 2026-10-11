@@ -1,0 +1,371 @@
+<Window x:Class="EMFieldVisualizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Relativistic EM Field Visualizer" Height="920" Width="1520"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="#FF0D1016">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="Caption" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,6,0,1" />
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,3,0,0" />
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="IsMoveToPointEnabled" Value="True" />
+        </Style>
+        <Style x:Key="HudText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFD8DEE9" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="400" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ======================= 3D view ======================= -->
+        <Border x:Name="ViewportHost" Background="#FF0D1016" ClipToBounds="True" Focusable="True">
+            <Grid>
+                <Viewport3D x:Name="MainViewport" IsHitTestVisible="False">
+                    <Viewport3D.Camera>
+                        <PerspectiveCamera x:Name="MainCamera" FieldOfView="50"
+                                           NearPlaneDistance="0.1" FarPlaneDistance="3000" />
+                    </Viewport3D.Camera>
+                    <ModelVisual3D x:Name="SceneVisual" />
+                </Viewport3D>
+
+                <!-- HUD: top-left -->
+                <Border VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10"
+                        Background="#99000000" CornerRadius="4" Padding="8,6" IsHitTestVisible="False">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource HudText}" Text="{Binding HudText}" />
+                        <TextBlock Style="{StaticResource HudText}" Foreground="#FF8892A6" Margin="0,6,0,0"
+                                   Text="Left-drag: rotate   Right-drag: pan   Wheel: zoom   Shift+Left-drag: move probe" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Legend: top-right -->
+                <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" MaxWidth="340"
+                        Background="#99000000" CornerRadius="4" Padding="8,6" IsHitTestVisible="False">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" Fill="#FF36E07F" Margin="0,0,6,0" />
+                            <TextBlock Style="{StaticResource HudText}" Text="electron (−e)" Margin="0,0,14,0" />
+                            <Ellipse Width="10" Height="10" Fill="#FFFF4466" Margin="0,0,6,0" />
+                            <TextBlock Style="{StaticResource HudText}" Text="proton (+e)" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Rectangle Width="34" Height="8" Margin="0,0,6,0">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF5A3A10" Offset="0" />
+                                        <GradientStop Color="#FFFFB020" Offset="0.5" />
+                                        <GradientStop Color="#FFFF3A20" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <TextBlock Style="{StaticResource HudText}" Text="E field" Margin="0,0,14,0" />
+                            <Rectangle Width="34" Height="8" Margin="0,0,6,0">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF103A5A" Offset="0" />
+                                        <GradientStop Color="#FF20D0FF" Offset="0.5" />
+                                        <GradientStop Color="#FFB060FF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <TextBlock Style="{StaticResource HudText}" Text="B field" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource HudText}" Foreground="#FFAAB2C0" Margin="0,6,0,0"
+                                   TextWrapping="Wrap" FontFamily="Segoe UI" Text="{Binding ViewHelpText}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Clocks: bottom-left -->
+                <Border VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10"
+                        Background="#99000000" CornerRadius="4" Padding="10,6" IsHitTestVisible="False">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel Margin="0,0,16,0">
+                            <Canvas Width="64" Height="64">
+                                <Ellipse Width="64" Height="64" Stroke="#FFD8DEE9" StrokeThickness="2" />
+                                <Line X1="32" Y1="32" X2="32" Y2="7" Stroke="#FFFFFFFF" StrokeThickness="3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                    <Line.RenderTransform>
+                                        <RotateTransform x:Name="ObserverClockHand" CenterX="32" CenterY="32" />
+                                    </Line.RenderTransform>
+                                </Line>
+                            </Canvas>
+                            <TextBlock Style="{StaticResource HudText}" Text="Observer's clock" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <StackPanel>
+                            <Canvas Width="64" Height="64">
+                                <Ellipse x:Name="ParticleClockFace" Width="64" Height="64" Stroke="#FF36E07F" StrokeThickness="2" />
+                                <Line X1="32" Y1="32" X2="32" Y2="7" Stroke="#FFFFFFFF" StrokeThickness="3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                    <Line.RenderTransform>
+                                        <RotateTransform x:Name="ParticleClockHand" CenterX="32" CenterY="32" />
+                                    </Line.RenderTransform>
+                                </Line>
+                            </Canvas>
+                            <TextBlock Style="{StaticResource HudText}" Text="Selected stream's clock" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <TextBlock x:Name="ClockInfo" Style="{StaticResource HudText}" VerticalAlignment="Center"
+                                   Margin="16,0,0,0" MaxWidth="260" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ======================= Control panel ======================= -->
+        <Border Grid.Column="1" Background="#FFF3F4F7" BorderBrush="#FFCCD0D8" BorderThickness="1,0,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="10">
+
+                    <!-- Streams -->
+                    <GroupBox Header="Particle streams">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Caption}" Text="Preset" Margin="0,0,0,1" />
+                            <ComboBox ItemsSource="{Binding Presets}" SelectedIndex="{Binding PresetIndex}" />
+
+                            <ListBox ItemsSource="{Binding Streams}" SelectedItem="{Binding SelectedStream}"
+                                     Height="110" Margin="0,8,0,4" FontWeight="Normal">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse x:Name="Dot" Width="10" Height="10" Margin="0,0,6,0" Fill="#FF36E07F" />
+                                            <TextBlock Text="{Binding Summary}" />
+                                        </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Kind}" Value="Proton">
+                                                <Setter TargetName="Dot" Property="Fill" Value="#FFFF4466" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="NeutralWire">
+                                                <Setter TargetName="Dot" Property="Fill" Value="#FFFFC14D" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <WrapPanel>
+                                <Button Content="+ Electron beam" Click="AddElectron_Click" Margin="0,0,6,4" />
+                                <Button Content="+ Proton beam" Click="AddProton_Click" Margin="0,0,6,4" />
+                                <Button Content="+ Neutral wire" Click="AddWire_Click" Margin="0,0,6,4" />
+                                <Button Content="Remove" Click="Remove_Click" Margin="0,0,6,4" />
+                            </WrapPanel>
+
+                            <!-- Selected stream editor -->
+                            <Border Margin="0,8,0,0" Padding="6" Background="#FFFFFFFF" BorderBrush="#FFD5D9E0" BorderThickness="1"
+                                    CornerRadius="3" IsEnabled="{Binding HasSelection}">
+                                <StackPanel DataContext="{Binding SelectedStream}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Type" VerticalAlignment="Center" FontWeight="Normal" Margin="0,0,8,0" />
+                                        <ComboBox Grid.Column="1" SelectedValue="{Binding Kind}" SelectedValuePath="Kind" DisplayMemberPath="Name"
+                                                  ItemsSource="{Binding DataContext.KindOptions, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        <CheckBox Grid.Column="2" Content="Enabled" IsChecked="{Binding Enabled}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <DockPanel Margin="0,6,0,0">
+                                        <TextBlock Text="{Binding SpeedLabel}" FontWeight="Normal" />
+                                        <TextBox DockPanel.Dock="Right" Width="70" HorizontalAlignment="Right" FontWeight="Normal"
+                                                 Text="{Binding Beta, StringFormat=0.#####, UpdateSourceTrigger=LostFocus}" />
+                                    </DockPanel>
+                                    <Slider Minimum="0" Maximum="0.999" Value="{Binding Beta}" SmallChange="0.01" LargeChange="0.1" />
+                                    <TextBlock Text="{Binding RelativityText}" FontWeight="Normal" Foreground="#FF505868" FontSize="11" />
+
+                                    <DockPanel Margin="0,6,0,0">
+                                        <TextBlock Text="Particles in window (lab)" FontWeight="Normal" />
+                                        <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="Normal" Text="{Binding Count}" />
+                                    </DockPanel>
+                                    <Slider Minimum="1" Maximum="120" Value="{Binding Count}" IsSnapToTickEnabled="True" TickFrequency="1" />
+
+                                    <DockPanel Margin="0,4,0,0">
+                                        <TextBlock Text="Offset y (nm)" FontWeight="Normal" />
+                                        <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="Normal" Text="{Binding OffsetY, StringFormat=0.0}" />
+                                    </DockPanel>
+                                    <Slider Minimum="-15" Maximum="15" Value="{Binding OffsetY}" IsSnapToTickEnabled="True" TickFrequency="0.5" />
+                                    <DockPanel>
+                                        <TextBlock Text="Offset z (nm)" FontWeight="Normal" />
+                                        <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="Normal" Text="{Binding OffsetZ, StringFormat=0.0}" />
+                                    </DockPanel>
+                                    <Slider Minimum="-15" Maximum="15" Value="{Binding OffsetZ}" IsSnapToTickEnabled="True" TickFrequency="0.5" />
+                                    <CheckBox Content="Moving in −x direction (anti-parallel)" IsChecked="{Binding Reversed}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Observer frame -->
+                    <GroupBox Header="Observer frame (who is watching?)">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource Caption}" Text="Observer velocity along x, βₒ (relative to the lab)" />
+                                <TextBox DockPanel.Dock="Right" Width="60" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontWeight="Normal"
+                                         Text="{Binding ObserverBeta, StringFormat=0.###, UpdateSourceTrigger=LostFocus}" />
+                            </DockPanel>
+                            <Slider Minimum="-0.99" Maximum="0.99" Value="{Binding ObserverBeta}" SmallChange="0.01" LargeChange="0.1"
+                                    TickFrequency="0.5" TickPlacement="BottomRight" />
+                            <WrapPanel Margin="0,4,0,0">
+                                <Button Content="Lab" Click="ObserverLab_Click" Margin="0,0,6,4" />
+                                <Button Content="Ride with selected stream" Click="ObserverStream_Click" Margin="0,0,6,4"
+                                        ToolTip="Move with the selected beam (or a wire's drifting electrons)" />
+                                <Button Content="Ride with probe" Click="ObserverProbe_Click" Margin="0,0,6,4" />
+                            </WrapPanel>
+                            <TextBlock Text="{Binding ObserverText}" TextWrapping="Wrap" FontWeight="Normal" FontSize="11" Foreground="#FF505868" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Display -->
+                    <GroupBox Header="Field display">
+                        <StackPanel>
+                            <ComboBox ItemsSource="{Binding ViewModes}" SelectedIndex="{Binding ViewModeIndex}" />
+                            <StackPanel Orientation="Horizontal" IsEnabled="{Binding IsLabFrame}">
+                                <CheckBox Content="Electric field (E)" IsChecked="{Binding ShowElectric}" Margin="0,6,16,0" />
+                                <CheckBox Content="Magnetic field (B)" IsChecked="{Binding ShowMagnetic}" Margin="0,6,0,0" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Caption}" Text="Where to draw field arrows" />
+                            <ComboBox ItemsSource="{Binding SliceModes}" SelectedIndex="{Binding SliceModeIndex}" />
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource Caption}" Text="Grid resolution" />
+                                <TextBlock Style="{StaticResource Caption}" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding GridResolution}" />
+                            </DockPanel>
+                            <Slider Minimum="3" Maximum="14" Value="{Binding GridResolution}" IsSnapToTickEnabled="True" TickFrequency="1" />
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource Caption}" Text="Arrow size" />
+                                <TextBlock Style="{StaticResource Caption}" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding ArrowScale, StringFormat=0.00}" />
+                            </DockPanel>
+                            <Slider Minimum="0.2" Maximum="3" Value="{Binding ArrowScale}" />
+                            <CheckBox Content="Same scale for E and cB (shows B ≪ E at low speed)" IsChecked="{Binding CommonScale}" />
+                            <CheckBox Content="Show particles" IsChecked="{Binding ShowParticles}" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Probe -->
+                    <GroupBox Header="Probe charge (forces)">
+                        <StackPanel DataContext="{Binding Probe}">
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource Caption}" Text="Charge (units of e)" />
+                                <TextBlock Style="{StaticResource Caption}" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Charge, StringFormat=+0;−0;0}" />
+                            </DockPanel>
+                            <Slider Minimum="-5" Maximum="5" Value="{Binding Charge}" IsSnapToTickEnabled="True" TickFrequency="1" />
+
+                            <TextBlock Style="{StaticResource Caption}" Text="Position (nm)  — or Shift+drag in the 3D view" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="44" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition /><RowDefinition /><RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="x" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Column="1" Minimum="-20" Maximum="20" Value="{Binding X}" />
+                                <TextBlock Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding X, StringFormat=0.0}" />
+                                <TextBlock Grid.Row="1" Text="y" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Row="1" Grid.Column="1" Minimum="-25" Maximum="25" Value="{Binding Y}" />
+                                <TextBlock Grid.Row="1" Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Y, StringFormat=0.0}" />
+                                <TextBlock Grid.Row="2" Text="z" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Row="2" Grid.Column="1" Minimum="-25" Maximum="25" Value="{Binding Z}" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Z, StringFormat=0.0}" />
+                            </Grid>
+
+                            <TextBlock Style="{StaticResource Caption}" Text="Probe velocity in the lab (β components; needed for magnetic force)" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="44" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition /><RowDefinition /><RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="βx" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Column="1" Minimum="-0.99" Maximum="0.99" Value="{Binding BetaX}" />
+                                <TextBlock Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding BetaX, StringFormat=0.00}" />
+                                <TextBlock Grid.Row="1" Text="βy" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Row="1" Grid.Column="1" Minimum="-0.99" Maximum="0.99" Value="{Binding BetaY}" />
+                                <TextBlock Grid.Row="1" Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding BetaY, StringFormat=0.00}" />
+                                <TextBlock Grid.Row="2" Text="βz" FontWeight="Normal" VerticalAlignment="Center" />
+                                <Slider Grid.Row="2" Grid.Column="1" Minimum="-0.99" Maximum="0.99" Value="{Binding BetaZ}" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" FontWeight="Normal" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding BetaZ, StringFormat=0.00}" />
+                            </Grid>
+                            <Button Content="Match selected stream's velocity" Click="MatchVelocity_Click" Margin="0,4,0,0" HorizontalAlignment="Left" />
+                            <CheckBox Content="Show force arrows on probe in 3D view"
+                                      IsChecked="{Binding DataContext.ShowProbeForces, RelativeSource={RelativeSource AncestorType=Window}}" />
+                            <CheckBox Content="Arrow length shows force strength (√-compressed)"
+                                      ToolTip="Checked: arrows grow/shrink with the force against a fixed reference (brighter = stronger). Unchecked: the largest arrow is always full length, showing direction and relative size only."
+                                      IsChecked="{Binding DataContext.AbsoluteForceArrows, RelativeSource={RelativeSource AncestorType=Window}}" />
+
+                            <!-- Force diagram -->
+                            <Border Margin="0,8,0,0" Background="#FF0D1016" CornerRadius="3" Height="210">
+                                <Grid>
+                                    <Viewport3D x:Name="DiagramViewport" IsHitTestVisible="False">
+                                        <Viewport3D.Camera>
+                                            <PerspectiveCamera x:Name="DiagramCamera" FieldOfView="40" NearPlaneDistance="0.05" FarPlaneDistance="100" />
+                                        </Viewport3D.Camera>
+                                        <ModelVisual3D x:Name="DiagramVisual" />
+                                    </Viewport3D>
+                                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="6,4">
+                                        <TextBlock Style="{StaticResource HudText}" FontSize="11" Foreground="#FFFFB020" Text="■ F_E = qE" />
+                                        <TextBlock Style="{StaticResource HudText}" FontSize="11" Foreground="#FF20D0FF" Text="■ F_B = q v×B" />
+                                        <TextBlock Style="{StaticResource HudText}" FontSize="11" Foreground="#FFFFFFFF" Text="■ F total" />
+                                        <TextBlock Style="{StaticResource HudText}" FontSize="11" Foreground="#FF9CFF3A" Text="■ probe velocity" />
+                                        <TextBlock Style="{StaticResource HudText}" FontSize="11" Foreground="#FF8892A6" Text="— x axis (stream direction)" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource HudText}" FontSize="10" Foreground="#FF8892A6" Margin="6,4"
+                                               VerticalAlignment="Bottom" HorizontalAlignment="Right" Text="view follows main camera" />
+                                </Grid>
+                            </Border>
+                            <TextBlock Margin="0,6,0,0" FontFamily="Consolas" FontSize="11" FontWeight="Normal" TextWrapping="Wrap"
+                                       Text="{Binding DataContext.ProbeText, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Simulation -->
+                    <GroupBox Header="Simulation &amp; relativity">
+                        <StackPanel>
+                            <CheckBox Content="Relativistic (field flattening, length contraction, time dilation)" IsChecked="{Binding Relativistic}" />
+                            <CheckBox Content="Fixed proper spacing (lab spacing contracts by 1/γ → more particles)" IsChecked="{Binding ContractSpacing}" />
+                            <CheckBox Content="Periodic streams (reduce end effects)" IsChecked="{Binding Periodic}" />
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource Caption}" Text="Animation speed (nm/s shown at v = c)" />
+                                <TextBlock Style="{StaticResource Caption}" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding AnimationSpeed, StringFormat=0}" />
+                            </DockPanel>
+                            <Slider Minimum="0" Maximum="40" Value="{Binding AnimationSpeed}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <CheckBox Content="Pause" IsChecked="{Binding Paused}" Margin="0,0,16,0" VerticalAlignment="Center" />
+                                <Button Content="Reset camera" Click="ResetCamera_Click" />
+                            </StackPanel>
+                            <TextBlock Margin="0,8,0,0" FontWeight="Normal" FontSize="11" Foreground="#FF505868" TextWrapping="Wrap"
+                                       Text="Units: 1 scene unit = 1 nm; every particle carries one elementary charge. In another observer frame each line's density changes by γ′/γ; dense lines keep that density exact by giving each drawn particle a slightly adjusted charge. Wire drift speeds are hugely exaggerated (real ones are ~mm/s) so the effect is visible. Fields use the exact relativistic field of a uniformly moving point charge (Heaviside–Feynman), B = v×E/c². The motion and clocks are slowed to human speed for display; their ratios are what matter." />
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>
