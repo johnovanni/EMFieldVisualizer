@@ -1,7 +1,7 @@
 <Window x:Class="EMFieldVisualizer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Relativistic EM Field Visualizer" Height="920" Width="1520"
+        Title="Relativistic EM Field Visualizer" Icon="Assets/EMFieldVisualizer.ico" Height="920" Width="1520"
         WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="#FF0D1016">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />

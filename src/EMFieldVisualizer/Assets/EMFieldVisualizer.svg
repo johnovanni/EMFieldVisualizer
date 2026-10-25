@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="tile"><rect width="1024" height="1024" rx="200"/></clipPath>
+    <linearGradient id="efield" gradientUnits="userSpaceOnUse" x1="0" y1="-60" x2="0" y2="-300" spreadMethod="reflect">
+      <stop offset="0" stop-color="#FFB300"/><stop offset="1" stop-color="#FF5A1F"/>
+    </linearGradient>
+    <linearGradient id="bfield" gradientUnits="userSpaceOnUse" x1="0" y1="-240" x2="0" y2="240">
+      <stop offset="0" stop-color="#29C5F6"/><stop offset="1" stop-color="#8A5CFF"/>
+    </linearGradient>
+    <radialGradient id="particle" cx="35%" cy="35%" r="65%">
+      <stop offset="0" stop-color="#B9F6CA"/><stop offset="0.5" stop-color="#2ECC71"/><stop offset="1" stop-color="#127A3E"/>
+    </radialGradient>
+    <marker id="ehead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.6" markerHeight="2.6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#FF8A1F"/>
+    </marker>
+    <marker id="bhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.6" markerHeight="2.6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5E8BFF"/>
+    </marker>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="1024" height="1024" fill="#0D1016"/>
+    <g transform="translate(512 512) rotate(-35)">
+      <!-- magnetic field rings around the beam (back halves) -->
+      <g fill="none" stroke="url(#bfield)" stroke-width="18" opacity="0.4">
+        <path d="M-160 -230 A60 230 0 0 0 -160 230"/>
+        <path d="M160 -230 A60 230 0 0 0 160 230"/>
+      </g>
+      <!-- electric field arrows, pointing out from the beam -->
+      <g stroke="#FF8A1F" stroke-width="22" stroke-linecap="round" marker-end="url(#ehead)">
+        <line x1="-320" y1="-60" x2="-320" y2="-250"/>
+        <line x1="0" y1="-60" x2="0" y2="-300"/>
+        <line x1="320" y1="-60" x2="320" y2="-250"/>
+        <line x1="-320" y1="60" x2="-320" y2="250"/>
+        <line x1="0" y1="60" x2="0" y2="300"/>
+        <line x1="320" y1="60" x2="320" y2="250"/>
+      </g>
+      <!-- beam axis and particles -->
+      <line x1="-470" y1="0" x2="470" y2="0" stroke="#2ECC71" stroke-width="6" opacity="0.5"/>
+      <g fill="url(#particle)">
+        <circle cx="-400" cy="0" r="34"/><circle cx="-240" cy="0" r="34"/><circle cx="-80" cy="0" r="34"/>
+        <circle cx="80" cy="0" r="34"/><circle cx="240" cy="0" r="34"/><circle cx="400" cy="0" r="34"/>
+      </g>
+      <!-- magnetic field rings (front halves) with direction arrows at the top -->
+      <g fill="none" stroke="url(#bfield)" stroke-width="18">
+        <path d="M-160 -230 A60 230 0 0 1 -160 230"/>
+        <path d="M160 -230 A60 230 0 0 1 160 230"/>
+      </g>
+      <g fill="#7A6BFF">
+        <path d="M-130 -230 l-44 -26 v52 Z"/>
+        <path d="M190 -230 l-44 -26 v52 Z"/>
+      </g>
+    </g>
+  </g>
+</svg>
